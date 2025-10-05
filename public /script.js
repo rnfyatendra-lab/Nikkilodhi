@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const mailForm = document.getElementById("mailForm");
   const sendBtn = document.getElementById("sendBtn");
 
-  // ✅ Login handler
+  // ✅ Login
   if (loginForm) {
     loginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ✅ Mail handler
+  // ✅ Mail sender
   if (mailForm) {
     mailForm.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -59,7 +59,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// ✅ Logout
 function logout() {
   window.location.href = "/logout";
 }
