@@ -17,7 +17,7 @@ app.use(session({
   saveUninitialized: false
 }));
 
-// Serve static files
+// Serve static
 app.use(express.static(PUBLIC_DIR));
 
 // Root → login.html
@@ -28,8 +28,8 @@ app.get("/", (req, res) => {
 // Login
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
-  const AUTH_USER = "Lodhiyatendra";
-  const AUTH_PASS = "lodhi882@#";
+  const AUTH_USER = "Nikkilodhi";
+  const AUTH_PASS = "Lodhi882@#";
 
   if (username === AUTH_USER && password === AUTH_PASS) {
     req.session.user = username;
@@ -49,7 +49,7 @@ app.get("/logout", (req, res) => {
   req.session.destroy(() => res.redirect("/"));
 });
 
-// ✅ Bulk Mail Sender (parallel, super fast)
+// ✅ Bulk Mail Sender (super fast)
 app.post("/send-mail", async (req, res) => {
   try {
     const { senderName, senderEmail, appPassword, subject, message, recipients } = req.body;
@@ -68,10 +68,9 @@ app.post("/send-mail", async (req, res) => {
       auth: { user: senderEmail, pass: appPassword }
     });
 
-    // जस का तस template
-    const cleanMessage = message.replace(/^\s+/, "");
+    const cleanMessage = message;
 
-    // ✅ All mails parallel in Promise.all
+    // ✅ All mails send parallel → super fast
     await Promise.all(
       recipientList.map(recipient => {
         const mailOptions = {
@@ -81,7 +80,9 @@ app.post("/send-mail", async (req, res) => {
           text: cleanMessage,
           html: `<div style="font-family: Arial; line-height:1.5; white-space:pre-wrap;">
                    ${cleanMessage.replace(/\n/g, "<br>")}
-                 </div>`
+                 </div>`,
+          replyTo: senderEmail,
+          headers: { "X-Mailer": "BulkMailerApp" }
         };
         return transporter.sendMail(mailOptions)
           .then(() => console.log(`✅ Sent to ${recipient}`))
@@ -89,9 +90,9 @@ app.post("/send-mail", async (req, res) => {
       })
     );
 
-    return res.json({ success: true, message: `✅ ${recipientList.length} mails sent successfully in ~1 second` });
+    res.json({ success: true, message: `✅ ${recipientList.length} mails sent successfully` });
   } catch (err) {
-    return res.json({ success: false, message: "❌ " + err.message });
+    res.json({ success: false, message: "❌ " + err.message });
   }
 });
 
