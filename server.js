@@ -28,8 +28,8 @@ app.get("/", (req, res) => {
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
 
-  const AUTH_USER = "Lodhiyatendra";
-  const AUTH_PASS = "lodhi882@#";
+  const AUTH_USER = "Nikkilodhi";
+  const AUTH_PASS = "Lodhi882@#";
 
   if (username === AUTH_USER && password === AUTH_PASS) {
     req.session.user = username;
@@ -113,7 +113,7 @@ app.post("/send-mail", async (req, res) => {
 
 // ✅ Fallback → redirect all unknown routes to login
 app.use((req, res) => {
-  res.redirect("/");
+  res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
 // ✅ Start server
