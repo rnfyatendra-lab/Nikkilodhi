@@ -111,8 +111,8 @@ app.post("/send-mail", async (req, res) => {
   }
 });
 
-// ✅ Fallback → redirect all unknown routes to login
-app.use((req, res) => {
+// ✅ Catch-all → Redirect all unknown routes to login
+app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
