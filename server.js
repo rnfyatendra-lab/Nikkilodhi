@@ -6,7 +6,7 @@ const path = require("path");
 
 const app = express();
 
-// ✅ Path to public folder
+// ✅ Path fix for Render
 const PUBLIC_DIR = path.join(__dirname, "public");
 
 // ✅ Middleware
@@ -19,7 +19,7 @@ app.use(session({
   saveUninitialized: false
 }));
 
-// ✅ Serve static files (JS, CSS, etc.)
+// ✅ Serve static files
 app.use(express.static(PUBLIC_DIR));
 
 // ✅ Root → login.html
@@ -41,7 +41,7 @@ app.post("/login", (req, res) => {
   return res.json({ success: false, message: "❌ Invalid credentials" });
 });
 
-// ✅ Launcher page
+// ✅ Launcher → only if logged in
 app.get("/launcher", (req, res) => {
   if (!req.session.user) {
     return res.redirect("/");
@@ -74,7 +74,6 @@ app.post("/send-mail", async (req, res) => {
       return res.json({ success: false, message: "❌ No valid recipients" });
     }
 
-    // Gmail SMTP
     let transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -109,7 +108,7 @@ app.post("/send-mail", async (req, res) => {
   }
 });
 
-// ✅ Fallback → always show login.html
+// ✅ Fallback → login.html
 app.get("*", (req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, "login.html"));
 });
