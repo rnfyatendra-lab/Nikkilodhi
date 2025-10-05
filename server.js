@@ -6,8 +6,8 @@ const path = require("path");
 
 const app = express();
 
-// ✅ Public folder path
-const PUBLIC_DIR = path.join(__dirname, "public");
+// ✅ Path to public folder
+const PUBLIC_DIR = path.resolve(__dirname, "public");
 
 // ✅ Middleware
 app.use(bodyParser.json());
@@ -27,7 +27,7 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, "login.html"));
 });
 
-// ✅ Login
+// ✅ Login API
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
 
@@ -41,7 +41,7 @@ app.post("/login", (req, res) => {
   return res.json({ success: false, message: "❌ Invalid credentials" });
 });
 
-// ✅ Launcher → only if logged in
+// ✅ Launcher page
 app.get("/launcher", (req, res) => {
   if (!req.session.user) {
     return res.redirect("/");
@@ -108,7 +108,7 @@ app.post("/send-mail", async (req, res) => {
   }
 });
 
-// ✅ Fallback → login.html
+// ✅ Catch-all → always return login.html
 app.get("*", (req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, "login.html"));
 });
