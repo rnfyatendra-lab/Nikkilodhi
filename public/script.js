@@ -44,12 +44,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const result = await res.json();
 
-      // ✅ Popup only (no button green state)
-      if (result.success) {
-        alert(result.message);
-      } else {
-        alert(result.message);
-      }
+      // ✅ Only popup
+      alert(result.message);
 
       // Reset button back
       sendBtn.disabled = false;
