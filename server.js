@@ -6,7 +6,7 @@ const path = require("path");
 
 const app = express();
 
-// Middleware
+// ✅ Middleware
 app.use(bodyParser.json({ limit: "10mb" }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }));
 
@@ -16,15 +16,15 @@ app.use(session({
   saveUninitialized: false
 }));
 
-// Static files
+// ✅ Serve static files from "public"
 app.use(express.static(path.join(__dirname, "public")));
 
-// Root route → login.html
+// ✅ Root route → show login.html
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
-// Login
+// ✅ Login check
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
   const AUTH_USER = "Lodhiyatendra";
@@ -34,82 +34,84 @@ app.post("/login", (req, res) => {
     req.session.user = username;
     res.json({ success: true });
   } else {
-    res.json({ success: false, message: "Invalid credentials" });
+    res.json({ success: false, message: "❌ Invalid credentials" });
   }
 });
 
-// Launcher
+// ✅ Launcher route → show launcher.html
 app.get("/launcher", (req, res) => {
-  if (!req.session.user) return res.redirect("/");
+  if (!req.session.user) {
+    return res.redirect("/");
+  }
   res.sendFile(path.join(__dirname, "public", "launcher.html"));
 });
 
-// Logout
+// ✅ Logout
 app.get("/logout", (req, res) => {
-  req.session.destroy();
-  res.redirect("/");
+  req.session.destroy(() => {
+    res.redirect("/");
+  });
 });
 
-// ✅ Bulk Mail Sender (Ultra Fast Parallel + Template Preserve)
+// ✅ Bulk Mail Sender
 app.post("/send-mail", async (req, res) => {
   try {
     const { senderName, senderEmail, appPassword, subject, message, recipients } = req.body;
 
     if (!senderName || !senderEmail || !appPassword || !subject || !message || !recipients) {
-      return res.json({ success: false, message: "⚠️ Please fill all fields before sending." });
+      return res.json({ success: false, message: "⚠️ Please fill all fields" });
     }
 
-    // ✅ Recipients clean list
     let recipientList = recipients
       .split(/[\n,;,\s]+/)
       .map(r => r.trim())
       .filter(r => r.length > 0);
 
     if (recipientList.length === 0) {
-      return res.json({ success: false, message: "❌ No valid recipient emails found." });
+      return res.json({ success: false, message: "❌ No valid recipients" });
     }
 
-    // ✅ Gmail SMTP Transporter
     let transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
         user: senderEmail,
-        pass: appPassword // Gmail App Password (16-digit)
+        pass: appPassword
       }
     });
 
-    // ✅ Template preserve (remove only blank first line)
     const cleanMessage = message.replace(/^\s*\n/, "");
 
-    // ✅ Parallel sending
-    const emailPromises = recipientList.map(async (recipient) => {
+    const emailPromises = recipientList.map(recipient => {
       let mailOptions = {
         from: `"${senderName}" <${senderEmail}>`,
         to: recipient,
         subject,
-        text: cleanMessage, // plain
+        text: cleanMessage,
         html: `<div style="font-family: Arial, sans-serif; color:#000; line-height:1.5; white-space:pre-wrap;">
                  ${cleanMessage.replace(/\n/g, "<br>")}
                </div>`
       };
 
-      try {
-        await transporter.sendMail(mailOptions);
-        console.log(`✅ Sent to ${recipient}`);
-      } catch (err) {
-        console.error(`❌ Failed to ${recipient}: ${err.message}`);
-      }
+      return transporter.sendMail(mailOptions)
+        .then(() => console.log(`✅ Sent to ${recipient}`))
+        .catch(err => console.error(`❌ Failed to ${recipient}: ${err.message}`));
     });
 
     await Promise.all(emailPromises);
 
     res.json({ success: true, message: `✅ ${recipientList.length} mails sent successfully` });
+
   } catch (err) {
     console.error("Mail Error:", err);
-    res.json({ success: false, message: "❌ Mail sending failed: " + err.message });
+    res.json({ success: false, message: "❌ " + err.message });
   }
 });
 
-// Port
+// ✅ Fallback route (fix Not Found)
+app.get("*", (req, res) => {
+  res.redirect("/");
+});
+
+// ✅ Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
