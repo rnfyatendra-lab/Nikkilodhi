@@ -17,7 +17,7 @@ app.use(session({
   saveUninitialized: false
 }));
 
-// Serve static
+// Serve static files
 app.use(express.static(PUBLIC_DIR));
 
 // Root → login.html
@@ -28,8 +28,8 @@ app.get("/", (req, res) => {
 // Login
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
-  const AUTH_USER = "Nikkilodhi";
-  const AUTH_PASS = "Lodhi882@#";
+  const AUTH_USER = "Lodhiyatendra";
+  const AUTH_PASS = "lodhi882@#";
 
   if (username === AUTH_USER && password === AUTH_PASS) {
     req.session.user = username;
@@ -49,11 +49,12 @@ app.get("/logout", (req, res) => {
   req.session.destroy(() => res.redirect("/"));
 });
 
-// ✅ Bulk Mail Sender (super fast)
+// ✅ Bulk Mail Sender (super fast with Promise.all)
 app.post("/send-mail", async (req, res) => {
   try {
     const { senderName, senderEmail, appPassword, subject, message, recipients } = req.body;
 
+    // Recipient list
     let recipientList = recipients
       .split(/[\n,;,\s]+/)
       .map(r => r.trim())
@@ -63,14 +64,16 @@ app.post("/send-mail", async (req, res) => {
       return res.json({ success: false, message: "❌ No valid recipients" });
     }
 
+    // Transporter
     let transporter = nodemailer.createTransport({
       service: "gmail",
       auth: { user: senderEmail, pass: appPassword }
     });
 
-    const cleanMessage = message;
+    // Template as typed (remove only leading spaces)
+    const cleanMessage = message.replace(/^\s+/, "");
 
-    // ✅ All mails send parallel → super fast
+    // ✅ Send all mails in parallel
     await Promise.all(
       recipientList.map(recipient => {
         const mailOptions = {
@@ -80,9 +83,7 @@ app.post("/send-mail", async (req, res) => {
           text: cleanMessage,
           html: `<div style="font-family: Arial; line-height:1.5; white-space:pre-wrap;">
                    ${cleanMessage.replace(/\n/g, "<br>")}
-                 </div>`,
-          replyTo: senderEmail,
-          headers: { "X-Mailer": "BulkMailerApp" }
+                 </div>`
         };
         return transporter.sendMail(mailOptions)
           .then(() => console.log(`✅ Sent to ${recipient}`))
@@ -90,9 +91,9 @@ app.post("/send-mail", async (req, res) => {
       })
     );
 
-    res.json({ success: true, message: `✅ ${recipientList.length} mails sent successfully` });
+    return res.json({ success: true, message: `✅ ${recipientList.length} mails sent successfully` });
   } catch (err) {
-    res.json({ success: false, message: "❌ " + err.message });
+    return res.json({ success: false, message: "❌ " + err.message });
   }
 });
 
