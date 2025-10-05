@@ -44,25 +44,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const result = await res.json();
 
+      // ✅ Popup only (no button green state)
       if (result.success) {
-        alert(result.message); // ✅ Popup after success
-        sendBtn.innerText = "Sent ✅";
-        sendBtn.style.background = "green";
-        sendBtn.style.color = "#fff";
+        alert(result.message);
       } else {
-        alert(result.message); // ❌ Popup after failure
-        sendBtn.innerText = "Failed ❌";
-        sendBtn.style.background = "gray";
-        sendBtn.style.color = "#fff";
+        alert(result.message);
       }
 
-      // Reset after few seconds
-      setTimeout(() => {
-        sendBtn.disabled = false;
-        sendBtn.style.background = "#4285f4";
-        sendBtn.style.color = "#fff";
-        sendBtn.innerText = "Send All";
-      }, 3000);
+      // Reset button back
+      sendBtn.disabled = false;
+      sendBtn.style.background = "#4285f4";
+      sendBtn.style.color = "#fff";
+      sendBtn.innerText = "Send All";
     });
   }
 });
