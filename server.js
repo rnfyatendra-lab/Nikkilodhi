@@ -17,7 +17,7 @@ app.use(session({
   saveUninitialized: false
 }));
 
-// Serve static
+// Serve static files
 app.use(express.static(PUBLIC_DIR));
 
 // Root → login.html
@@ -49,7 +49,7 @@ app.get("/logout", (req, res) => {
   req.session.destroy(() => res.redirect("/"));
 });
 
-// ✅ Bulk Mail Sender (fix loop)
+// ✅ Bulk Mail Sender
 app.post("/send-mail", async (req, res) => {
   try {
     const { senderName, senderEmail, appPassword, subject, message, recipients } = req.body;
@@ -68,9 +68,9 @@ app.post("/send-mail", async (req, res) => {
       auth: { user: senderEmail, pass: appPassword }
     });
 
-    const cleanMessage = message.replace(/^\s*\n/, "");
+    // Message जस का तस (no trim)
+    const cleanMessage = message;
 
-    // ✅ Promise.all to send to ALL
     await Promise.all(
       recipientList.map(recipient => {
         const mailOptions = {
