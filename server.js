@@ -7,8 +7,8 @@ const path = require("path");
 const app = express();
 
 // ✅ Middleware
-app.use(bodyParser.json({ limit: "10mb" }));
-app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(session({
   secret: "bulkmail_secret",
@@ -16,17 +16,18 @@ app.use(session({
   saveUninitialized: false
 }));
 
-// ✅ Serve static files from "public"
+// ✅ Serve static files
 app.use(express.static(path.join(__dirname, "public")));
 
-// ✅ Root route → show login.html
+// ✅ Root → Always show login.html
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
-// ✅ Login check
+// ✅ Login route
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
+
   const AUTH_USER = "Lodhiyatendra";
   const AUTH_PASS = "lodhi882@#";
 
@@ -38,7 +39,7 @@ app.post("/login", (req, res) => {
   }
 });
 
-// ✅ Launcher route → show launcher.html
+// ✅ Launcher → show launcher.html only if logged in
 app.get("/launcher", (req, res) => {
   if (!req.session.user) {
     return res.redirect("/");
@@ -62,6 +63,7 @@ app.post("/send-mail", async (req, res) => {
       return res.json({ success: false, message: "⚠️ Please fill all fields" });
     }
 
+    // Clean recipient list
     let recipientList = recipients
       .split(/[\n,;,\s]+/)
       .map(r => r.trim())
@@ -71,6 +73,7 @@ app.post("/send-mail", async (req, res) => {
       return res.json({ success: false, message: "❌ No valid recipients" });
     }
 
+    // Gmail Transport
     let transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -79,6 +82,7 @@ app.post("/send-mail", async (req, res) => {
       }
     });
 
+    // Template clean (remove only leading empty lines)
     const cleanMessage = message.replace(/^\s*\n/, "");
 
     const emailPromises = recipientList.map(recipient => {
@@ -107,11 +111,11 @@ app.post("/send-mail", async (req, res) => {
   }
 });
 
-// ✅ Fallback route (fix Not Found)
-app.get("*", (req, res) => {
+// ✅ Fallback → redirect all unknown routes to login
+app.use((req, res) => {
   res.redirect("/");
 });
 
 // ✅ Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
