@@ -6,8 +6,8 @@ const path = require("path");
 
 const app = express();
 
-// ✅ Path fix for Render
-const PUBLIC_DIR = path.join(__dirname, "public");
+// ✅ Correct absolute path to public
+const PUBLIC_DIR = path.resolve("public");
 
 // ✅ Middleware
 app.use(bodyParser.json());
@@ -108,7 +108,7 @@ app.post("/send-mail", async (req, res) => {
   }
 });
 
-// ✅ Fallback → login.html
+// ✅ Catch-all → login.html
 app.get("*", (req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, "login.html"));
 });
