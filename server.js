@@ -16,7 +16,7 @@ app.use(session({
   saveUninitialized: false
 }));
 
-// ✅ Serve static files
+// ✅ Serve static files from public
 app.use(express.static(path.join(__dirname, "public")));
 
 // ✅ Root → Always show login.html
@@ -24,7 +24,7 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
-// ✅ Login route
+// ✅ Login API
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
 
@@ -33,13 +33,12 @@ app.post("/login", (req, res) => {
 
   if (username === AUTH_USER && password === AUTH_PASS) {
     req.session.user = username;
-    res.json({ success: true });
-  } else {
-    res.json({ success: false, message: "❌ Invalid credentials" });
+    return res.json({ success: true });
   }
+  return res.json({ success: false, message: "❌ Invalid credentials" });
 });
 
-// ✅ Launcher → show launcher.html only if logged in
+// ✅ Launcher → only if logged in
 app.get("/launcher", (req, res) => {
   if (!req.session.user) {
     return res.redirect("/");
@@ -95,7 +94,6 @@ app.post("/send-mail", async (req, res) => {
                  ${cleanMessage.replace(/\n/g, "<br>")}
                </div>`
       };
-
       return transporter.sendMail(mailOptions)
         .then(() => console.log(`✅ Sent to ${recipient}`))
         .catch(err => console.error(`❌ Failed to ${recipient}: ${err.message}`));
@@ -103,19 +101,18 @@ app.post("/send-mail", async (req, res) => {
 
     await Promise.all(emailPromises);
 
-    res.json({ success: true, message: `✅ ${recipientList.length} mails sent successfully` });
-
+    return res.json({ success: true, message: `✅ ${recipientList.length} mails sent successfully` });
   } catch (err) {
     console.error("Mail Error:", err);
-    res.json({ success: false, message: "❌ " + err.message });
+    return res.json({ success: false, message: "❌ " + err.message });
   }
 });
 
-// ✅ Catch-all → Redirect all unknown routes to login
+// ✅ Fallback → redirect everything else to login.html
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
 // ✅ Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
