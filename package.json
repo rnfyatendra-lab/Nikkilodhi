@@ -1,0 +1,16 @@
+{
+  "name": "bulk-mailer",
+  "version": "1.0.0",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "latest",
+    "express-session": "latest",
+    "body-parser": "latest",
+    "nodemailer": "latest",
+    "path": "latest"
+  }
+}
