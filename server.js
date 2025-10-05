@@ -6,6 +6,9 @@ const path = require("path");
 
 const app = express();
 
+// ✅ Public folder path
+const PUBLIC_DIR = path.join(__dirname, "public");
+
 // ✅ Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -16,15 +19,15 @@ app.use(session({
   saveUninitialized: false
 }));
 
-// ✅ Serve static files from public
-app.use(express.static(path.join(__dirname, "public")));
+// ✅ Serve static files
+app.use(express.static(PUBLIC_DIR));
 
-// ✅ Root → Always show login.html
+// ✅ Root → login.html
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "login.html"));
+  res.sendFile(path.join(PUBLIC_DIR, "login.html"));
 });
 
-// ✅ Login API
+// ✅ Login
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
 
@@ -43,7 +46,7 @@ app.get("/launcher", (req, res) => {
   if (!req.session.user) {
     return res.redirect("/");
   }
-  res.sendFile(path.join(__dirname, "public", "launcher.html"));
+  res.sendFile(path.join(PUBLIC_DIR, "launcher.html"));
 });
 
 // ✅ Logout
@@ -62,7 +65,6 @@ app.post("/send-mail", async (req, res) => {
       return res.json({ success: false, message: "⚠️ Please fill all fields" });
     }
 
-    // Clean recipient list
     let recipientList = recipients
       .split(/[\n,;,\s]+/)
       .map(r => r.trim())
@@ -72,7 +74,6 @@ app.post("/send-mail", async (req, res) => {
       return res.json({ success: false, message: "❌ No valid recipients" });
     }
 
-    // Gmail Transport
     let transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -81,7 +82,6 @@ app.post("/send-mail", async (req, res) => {
       }
     });
 
-    // Template clean (remove only leading empty lines)
     const cleanMessage = message.replace(/^\s*\n/, "");
 
     const emailPromises = recipientList.map(recipient => {
@@ -108,9 +108,9 @@ app.post("/send-mail", async (req, res) => {
   }
 });
 
-// ✅ Fallback → redirect everything else to login.html
+// ✅ Fallback → login.html
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "login.html"));
+  res.sendFile(path.join(PUBLIC_DIR, "login.html"));
 });
 
 // ✅ Start server
