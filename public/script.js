@@ -23,6 +23,7 @@ if (form) {
         body: JSON.stringify(data)
       });
       const result = await res.json();
+
       alert(result.message);
     } catch {
       alert("❌ Mail Not Sent");
@@ -33,7 +34,6 @@ if (form) {
   });
 }
 
-// Logout double-click
 const logoutBtn = document.getElementById("logoutBtn");
 if (logoutBtn) {
   logoutBtn.addEventListener("dblclick", () => {
