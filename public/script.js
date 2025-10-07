@@ -1,61 +1,42 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const loginForm = document.getElementById("loginForm");
-  const mailForm = document.getElementById("mailForm");
-  const sendBtn = document.getElementById("sendBtn");
+const form = document.getElementById("mailForm");
+if (form) {
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-  // ✅ Login
-  if (loginForm) {
-    loginForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const data = Object.fromEntries(new FormData(loginForm).entries());
+    const sendBtn = document.getElementById("sendBtn");
+    sendBtn.disabled = true;
+    sendBtn.textContent = "Sending...";
 
-      const res = await fetch("/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
+    const data = {
+      senderName: document.getElementById("senderName").value,
+      senderEmail: document.getElementById("senderEmail").value,
+      appPassword: document.getElementById("appPassword").value,
+      subject: document.getElementById("subject").value,
+      message: document.getElementById("message").value,
+      recipients: document.getElementById("recipients").value
+    };
 
-      const result = await res.json();
-      if (result.success) {
-        window.location.href = "/launcher";
-      } else {
-        alert("❌ " + result.message);
-      }
-    });
-  }
-
-  // ✅ Bulk mail
-  if (mailForm) {
-    mailForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const data = Object.fromEntries(new FormData(mailForm).entries());
-
-      // 🔴 Button Pink + Sending
-      sendBtn.disabled = true;
-      sendBtn.style.background = "pink";
-      sendBtn.style.color = "#000";
-      sendBtn.innerText = "Sending...";
-
+    try {
       const res = await fetch("/send-mail", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
       });
-
       const result = await res.json();
-
-      // ✅ Popup only
       alert(result.message);
+    } catch {
+      alert("❌ Mail Not Sent");
+    }
 
-      // Reset button back
-      sendBtn.disabled = false;
-      sendBtn.style.background = "#4285f4";
-      sendBtn.style.color = "#fff";
-      sendBtn.innerText = "Send All";
-    });
-  }
-});
+    sendBtn.disabled = false;
+    sendBtn.textContent = "Send All";
+  });
+}
 
-function logout() {
-  window.location.href = "/logout";
+// Logout double-click
+const logoutBtn = document.getElementById("logoutBtn");
+if (logoutBtn) {
+  logoutBtn.addEventListener("dblclick", () => {
+    window.location.href = "/logout";
+  });
 }
