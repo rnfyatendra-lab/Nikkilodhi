@@ -5,9 +5,8 @@ const nodemailer = require("nodemailer");
 const path = require("path");
 
 const app = express();
-const PUBLIC_DIR = path.resolve("public");
+const PUBLIC_DIR = path.join(__dirname, "public");
 
-// Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -17,28 +16,24 @@ app.use(session({
   saveUninitialized: false
 }));
 
-// Serve static
 app.use(express.static(PUBLIC_DIR));
 
-// Root → login.html
+// Root → Login page
 app.get("/", (req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, "login.html"));
 });
 
-// Login
+// Login route (your fixed credentials)
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
-  const AUTH_USER = "Nikkilodhi";
-  const AUTH_PASS = "Lodhi882@#";
-
-  if (username === AUTH_USER && password === AUTH_PASS) {
+  if (username === "ArvindLodhi" && password === "@#ArvindLodhi") {
     req.session.user = username;
     return res.json({ success: true });
   }
   return res.json({ success: false, message: "❌ Invalid credentials" });
 });
 
-// Launcher
+// Launcher page
 app.get("/launcher", (req, res) => {
   if (!req.session.user) return res.redirect("/");
   res.sendFile(path.join(PUBLIC_DIR, "launcher.html"));
@@ -49,7 +44,7 @@ app.get("/logout", (req, res) => {
   req.session.destroy(() => res.redirect("/"));
 });
 
-// ✅ Bulk Mail Sender (super fast)
+// 🚀 Bulk Mail Sending via Gmail App Password
 app.post("/send-mail", async (req, res) => {
   try {
     const { senderName, senderEmail, appPassword, subject, message, recipients } = req.body;
@@ -57,47 +52,41 @@ app.post("/send-mail", async (req, res) => {
     let recipientList = recipients
       .split(/[\n,;,\s]+/)
       .map(r => r.trim())
-      .filter(r => r.length > 0);
+      .filter(r => r);
 
     if (recipientList.length === 0) {
-      return res.json({ success: false, message: "❌ No valid recipients" });
+      return res.json({ success: false, message: "❌ Mail Not Sent" });
     }
 
+    // Gmail App Password transporter
     let transporter = nodemailer.createTransport({
       service: "gmail",
       auth: { user: senderEmail, pass: appPassword }
     });
 
-    const cleanMessage = message;
-
-    // ✅ All mails send parallel → super fast
+    // Bulk mails loop (fast + safe)
     await Promise.all(
-      recipientList.map(recipient => {
-        const mailOptions = {
+      recipientList.map(recipient =>
+        transporter.sendMail({
           from: `"${senderName}" <${senderEmail}>`,
           to: recipient,
           subject,
-          text: cleanMessage,
-          html: `<div style="font-family: Arial; line-height:1.5; white-space:pre-wrap;">
-                   ${cleanMessage.replace(/\n/g, "<br>")}
-                 </div>`,
-          replyTo: senderEmail,
-          headers: { "X-Mailer": "BulkMailerApp" }
-        };
-        return transporter.sendMail(mailOptions)
-          .then(() => console.log(`✅ Sent to ${recipient}`))
-          .catch(err => console.error(`❌ ${recipient}: ${err.message}`));
-      })
+          text: message
+        }).catch(err => console.error(`❌ Failed for ${recipient}: ${err.message}`))
+      )
     );
 
-    res.json({ success: true, message: `✅ ${recipientList.length} mails sent successfully` });
+    return res.json({ success: true, message: "✅ Mail Sent Successfully" });
   } catch (err) {
-    res.json({ success: false, message: "❌ " + err.message });
+    console.error("Error:", err.message);
+    return res.json({ success: false, message: "❌ Mail Not Sent" });
   }
 });
 
-// Fallback
-app.get("*", (req, res) => res.sendFile(path.join(PUBLIC_DIR, "login.html")));
+// Fallback → Login
+app.get("*", (req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, "login.html"));
+});
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Bulk Mailer running on port ${PORT}`));
